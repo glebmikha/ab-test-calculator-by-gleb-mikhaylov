@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>A/B Test Calculator by Gleb Mikhaylov</title>
+  <style>
+    /* Add some basic styling for the entire page */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #333;
+      color: #f2f2f2;
+    }
+    /* Style the form elements */
+    form {
+      margin: 20px;
+      padding: 20px;
+      background-color: #444;
+    }
+    form label {
+      display: inline-block;
+      width: 150px;
+      font-weight: bold;
+    }
+    form input[type="text"] {
+      width: 200px;
+      padding: 12px 20px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      color: #f2f2f2;
+      background-color: #555;
+    }
+    /* Style the submit button */
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+      <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+      <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+</head>
+<body>
+  <h1>A/B Test Calculator by Gleb Mikhaylov</h1>
+  <form onsubmit="return false;">
+    <label for="baseline">Baseline conversion rate:</label>
+    <input type="text" id="baseline" name="baseline" class="py-input"><br>
+    <label for="mde">Minimum Detectable Effect:</label>
+    <input type="text" id="mde" name="mde" class="py-input"><br>
+    <label for="power">Statistical Power:</label>
+    <input type="text" id="power" name="power" class="py-input"><br>
+    <label for="level">Significance level:</label>
+    <input type="text" id="level" name="level" class="py-input"><br>
+    <input type="submit" value="Calculate Sample Size" id="btn-load" class="py-button" py-click="get_data()">
+  </form>
+  <p>Sample Size: <span id="sampleSize"></span></p>
+
+  <py-config>
+    packages = ["numpy","statsmodels"]
+  </py-config>
+<py-script>
+
+    def get_data():
+
+
+        import numpy as np
+        from statsmodels.stats.power import NormalIndPower
+
+        baseline = float(Element("baseline").element.value)
+        mde = float(Element("mde").element.value)
+        power = float(Element("power").element.value)
+        alpha = float(Element("level").element.value)
+
+
+        # Create the power analysis object
+        analysis = NormalIndPower()
+
+        # Calculate the sample size
+        result = analysis.solve_power(effect_size=mde/baseline, power=power, alpha=alpha, ratio=1)
+        sample_size = int(np.ceil(result))
+
+        print((baseline,mde,power,alpha))
+
+        print(f"Sample size: {sample_size}")
+
+</py-script>
+
+</body>
+</html>
