@@ -46,15 +46,23 @@
   <form onsubmit="return false;">
     <label for="baseline">Baseline conversion rate:</label>
     <input type="text" id="baseline" name="baseline" class="py-input" value="0.2"><br>
+
     <label for="mde">Minimum Detectable Effect:</label>
     <input type="text" id="mde" name="mde" class="py-input" value="0.05"><br>
+
+    <label for="ratio">Test to Control group ratio:</label>
+    <input type="text" id="ratio" name="ratio" class="py-input" value="1"><br>
+
     <label for="power">Statistical Power:</label>
     <input type="text" id="power" name="power" class="py-input" value="0.8"><br>
+
     <label for="level">Significance level:</label>
     <input type="text" id="level" name="level" class="py-input" value="0.05"><br>
+
     <input type="submit" value="Calculate Sample Size" id="btn-load" class="py-button" py-click="get_data()">
   </form>
-  <p>Sample Size: <span id="sampleSize"></span></p>
+  <p>Control group size: <span id="control-group"></span></p>
+  <p>Test group size: <span id="test-group"></span></p>
 
   <py-config>
     packages = ["numpy","statsmodels"]
@@ -69,8 +77,11 @@
 
         baseline = float(Element("baseline").element.value)
         mde = float(Element("mde").element.value)
+        ratio = float(Element("ratio").element.value)
         power = float(Element("power").element.value)
         alpha = float(Element("level").element.value)
+
+        # print(baseline,mde,ratio,power,alpha)
 
         # Create the power analysis object
         analysis = NormalIndPower()
@@ -78,10 +89,12 @@
         effect_size = sm.stats.proportion_effectsize(baseline, baseline + mde)
 
         # Calculate the sample size
-        result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=1)
+        result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=ratio)
         sample_size = int(np.ceil(result))
 
-        Element('sampleSize').write(sample_size)
+        Element('control-group').write(round(sample_size))
+        Element('test-group').write(round(sample_size*ratio))
+        
 
 </py-script>
 
