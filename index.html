@@ -62,13 +62,13 @@
 <body>
   <h1>A/B Test Calculator by Gleb Mikhaylov</h1>
   <form onsubmit="return false;">
-    <label for="baseline">Baseline conversion rate:</label>
+    <label for="baseline">Baseline Conversion Rate:</label>
     <input type="text" id="baseline" name="baseline" class="py-input" value="0.2"><br>
 
     <label for="mde">Minimum Detectable Effect:</label>
     <input type="text" id="mde" name="mde" class="py-input" value="0.05"><br>
 
-    <label for="ratio">Test to Control group ratio:</label>
+    <label for="ratio">Test to Control Group Ratio:</label>
     <input type="text" id="ratio" name="ratio" class="py-input" value="1"><br>
 
     <label for="power">Power (Desired minimum TPR):</label>
@@ -100,6 +100,27 @@
         alpha = float(Element("level").element.value)
 
         # print(baseline,mde,ratio,power,alpha)
+
+        # Create the power analysis object
+        analysis = NormalIndPower()
+
+        effect_size = sm.stats.proportion_effectsize(baseline, baseline + mde)
+
+        # Calculate the sample size
+        result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=ratio)
+        sample_size = int(np.ceil(result))
+
+        Element('control-group').write(round(sample_size))
+        Element('test-group').write(round(sample_size*ratio))
+
+  def evaluate_experiment():
+
+        import numpy as np
+        from statsmodels.stats.power import NormalIndPower
+        import statsmodels.api as sm
+
+        alpha = float(Element("level").element.value)
+
 
         # Create the power analysis object
         analysis = NormalIndPower()
