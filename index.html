@@ -79,6 +79,27 @@
 
     <input type="submit" value="Calculate Sample Sizes" id="btn-load" class="py-button" py-click="get_data()">
   </form>
+  <p>Control Group Size: <span id="control-group"></span></p>
+  <p>Test Group Size: <span id="test-group"></span></p>
+
+<!--   evaluate experiment -->
+
+  <h1>Evalute Results of an A/B Test</h1>
+  <form onsubmit="return false;">
+    <label for="baseline">Actual Control Group Size:</label>
+    <input type="text" id="baseline" name="actual-cgs" class="py-input" value="0.2"><br>
+
+    <label for="mde">Number of Converstions in Control Group:</label>
+    <input type="text" id="mde" name="mde" class="converstions-c" value="0.05"><br>
+
+    <label for="ratio">Actual Test Group Size:</label>
+    <input type="text" id="ratio" name="ratio" class="actual-tgs" value="1"><br>
+
+    <label for="power">Number of Converstions in Test Group:</label>
+    <input type="text" id="power" name="power" class="converstions-t" value="0.8"><br>
+
+    <input type="submit" value="Evaluate Experiment" id="btn-load" class="py-button" py-click="evaluate_experiment()">
+  </form>
   <p>Control group size: <span id="control-group"></span></p>
   <p>Test group size: <span id="test-group"></span></p>
 
@@ -122,17 +143,10 @@
         alpha = float(Element("level").element.value)
 
 
-        # Create the power analysis object
-        analysis = NormalIndPower()
+        
 
-        effect_size = sm.stats.proportion_effectsize(baseline, baseline + mde)
-
-        # Calculate the sample size
-        result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=ratio)
-        sample_size = int(np.ceil(result))
-
-        Element('control-group').write(round(sample_size))
-        Element('test-group').write(round(sample_size*ratio))
+<!--         Element('control-group').write(round(sample_size))
+        Element('test-group').write(round(sample_size*ratio)) -->
         
 
 </py-script>
