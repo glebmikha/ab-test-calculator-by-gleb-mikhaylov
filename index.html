@@ -55,9 +55,103 @@
       border: none;
       cursor: pointer;
     }
+    /* style for result-table */
+    .result-table {
+    margin: 20px;
+    padding: 20px;
+    background-color: #444;
+    border-collapse: collapse;
+    border-color: #f2f2f2;
+    width: 100%;      /* Set the width to 100% of the container */
+    max-width: 600px; /* Maximum width of 600px */
+    text-align: left; /* Align the table to the left */
+}
+
+.result-table td, .result-table th {
+    border: 1px solid #f2f2f2; /* Add border to table cells */
+    text-align: center;        /* Center the text in cells */
+    padding: 8px;              /* Add some padding for aesthetics */
+}
+
+
   </style>
       <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
       <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+      <py-config>
+        packages = ["numpy","statsmodels"]
+      </py-config>
+
+    <script type="py">
+    
+        def get_data():
+    
+            import numpy as np
+            from statsmodels.stats.power import NormalIndPower
+            import statsmodels.api as sm
+    
+            baseline = float(Element("baseline").element.value)
+            mde = float(Element("mde").element.value)
+            ratio = float(Element("ratio").element.value)
+            power = float(Element("power").element.value)
+            alpha = float(Element("level").element.value)
+    
+            # print(baseline,mde,ratio,power,alpha)
+    
+            # Create the power analysis object
+            analysis = NormalIndPower()
+    
+            effect_size = sm.stats.proportion_effectsize(baseline, baseline + mde)
+    
+            # Calculate the sample size
+            result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=ratio)
+            sample_size = int(np.ceil(result))
+    
+            Element('control-group').write(round(sample_size))
+            Element('test-group').write(round(sample_size*ratio))
+        
+        def evaluate_experiment():
+    
+            import numpy as np
+            from statsmodels.stats.proportion import proportions_ztest
+
+            alpha = float(Element("level").element.value)
+
+            actual_cgs = float(Element("actual-cgs").element.value)
+            converstions_c = float(Element("converstions-c").element.value)
+            actual_tgs = float(Element("actual-tgs").element.value)
+            converstions_t = float(Element("converstions-t").element.value)
+
+            _, p_value = proportions_ztest([converstions_c, converstions_t], [actual_cgs, actual_tgs], alternative='two-sided')
+            
+            cr_c = converstions_c/actual_cgs
+            cr_t = converstions_t/actual_tgs
+
+            difference = cr_t - cr_c
+
+            if p_value < alpha:
+              decision = "Positive"
+            else:
+              decision = "Negative"
+
+            Element('cgs').write(round(actual_cgs))
+            Element('tgs').write(round(actual_tgs))
+
+            Element('cntr-c').write(round(converstions_c))
+            Element('test-c').write(round(converstions_t))
+
+            Element('cr-c').write(round(cr_c,4))
+            Element('cr-t').write(round(cr_t,4))
+
+            Element('diff').write(round(difference,4))
+
+            Element('pvalue').write(round(p_value,5))
+
+            Element('decision').write(decision)
+            Element('stat-sig').write(alpha)
+
+    
+    </script>
+
 </head>
 <body>
   <h1>A/B Test Calculator by Gleb Mikhaylov</h1>
@@ -86,70 +180,53 @@
 
   <h1>Evalute Results of an A/B Test</h1>
   <form onsubmit="return false;">
+
     <label for="baseline">Actual Control Group Size:</label>
-    <input type="text" id="baseline" name="actual-cgs" class="py-input" value="0.2"><br>
+    <input type="text" id="actual-cgs" name="actual-cgs" class="py-input" value="1000"><br>
 
     <label for="mde">Number of Converstions in Control Group:</label>
-    <input type="text" id="mde" name="mde" class="converstions-c" value="0.05"><br>
+    <input type="text" id="converstions-c" name="converstions-c" class="py-input" value="30"><br>
 
     <label for="ratio">Actual Test Group Size:</label>
-    <input type="text" id="ratio" name="ratio" class="actual-tgs" value="1"><br>
+    <input type="text" id="actual-tgs" name="actual-tgs" class="py-input" value="1000"><br>
 
     <label for="power">Number of Converstions in Test Group:</label>
-    <input type="text" id="power" name="power" class="converstions-t" value="0.8"><br>
+    <input type="text" id="converstions-t" name="converstions-t" class="py-input" value="40"><br>
 
     <input type="submit" value="Evaluate Experiment" id="btn-load" class="py-button" py-click="evaluate_experiment()">
   </form>
-  <p>Control group size: <span id="control-group"></span></p>
-  <p>Test group size: <span id="test-group"></span></p>
 
-  <py-config>
-    packages = ["numpy","statsmodels"]
-  </py-config>
-<py-script>
+  <p>Decision: <span id="decision"></span></p>
+  <p>Statistical Significance: <span id="stat-sig"></span></p>
+  
+  <!-- table with experiments result: Group size, Number or converstion, CR -->
 
-    def get_data():
+  <table class="result-table">
+    <tr>
+      <th>Group</th>
+      <th>Size</th>
+      <th>Converstions</th>
+      <th>CR</th>
+    </tr>
+    <tr>
+      <td>Control</td>
+      <td id="cgs"></td>
+      <td id="cntr-c"></td>
+      <td id="cr-c"></td>
+    </tr>
+    <tr>
+      <td>Test</td>
+      <td id="tgs"></td>
+      <td id="test-c"></td>
+      <td id="cr-t"></td>
+    </tr>
+  </table>
+  
+ 
+  <p>Difference: <span id="diff"></span></p>
+  <p>Pvalue: <span id="pvalue"></span></p>
+ 
 
-        import numpy as np
-        from statsmodels.stats.power import NormalIndPower
-        import statsmodels.api as sm
-
-        baseline = float(Element("baseline").element.value)
-        mde = float(Element("mde").element.value)
-        ratio = float(Element("ratio").element.value)
-        power = float(Element("power").element.value)
-        alpha = float(Element("level").element.value)
-
-        # print(baseline,mde,ratio,power,alpha)
-
-        # Create the power analysis object
-        analysis = NormalIndPower()
-
-        effect_size = sm.stats.proportion_effectsize(baseline, baseline + mde)
-
-        # Calculate the sample size
-        result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=ratio)
-        sample_size = int(np.ceil(result))
-
-        Element('control-group').write(round(sample_size))
-        Element('test-group').write(round(sample_size*ratio))
-
-  def evaluate_experiment():
-
-        import numpy as np
-        from statsmodels.stats.power import NormalIndPower
-        import statsmodels.api as sm
-
-        alpha = float(Element("level").element.value)
-
-
-        
-
-<!--         Element('control-group').write(round(sample_size))
-        Element('test-group').write(round(sample_size*ratio)) -->
-        
-
-</py-script>
 
 </body>
 </html>
