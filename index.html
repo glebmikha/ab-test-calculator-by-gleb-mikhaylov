@@ -103,7 +103,7 @@
             effect_size = sm.stats.proportion_effectsize(baseline, baseline + mde)
     
             # Calculate the sample size
-            result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=ratio)
+            result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=ratio, alternative='two-sided')
             sample_size = int(np.ceil(result))
     
             Element('control-group').write(round(sample_size))
