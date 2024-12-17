@@ -75,82 +75,11 @@
 
 
   </style>
-      <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-      <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-      <py-config>
-        packages = ["numpy","statsmodels"]
-      </py-config>
-
-    <script type="py">
-    
-        def get_data():
-    
-            import numpy as np
-            from statsmodels.stats.power import NormalIndPower
-            import statsmodels.api as sm
-    
-            baseline = float(Element("baseline").element.value)
-            mde = float(Element("mde").element.value)
-            ratio = float(Element("ratio").element.value)
-            power = float(Element("power").element.value)
-            alpha = float(Element("level").element.value)
-    
-            # print(baseline,mde,ratio,power,alpha)
-    
-            # Create the power analysis object
-            analysis = NormalIndPower()
-    
-            effect_size = sm.stats.proportion_effectsize(baseline, baseline + mde)
-    
-            # Calculate the sample size
-            result = analysis.solve_power(effect_size=effect_size, power=power, alpha=alpha, ratio=ratio, alternative='two-sided')
-            sample_size = int(np.ceil(result))
-    
-            Element('control-group').write(round(sample_size))
-            Element('test-group').write(round(sample_size*ratio))
-        
-        def evaluate_experiment():
-    
-            import numpy as np
-            from statsmodels.stats.proportion import proportions_ztest
-
-            alpha = float(Element("level").element.value)
-
-            actual_cgs = float(Element("actual-cgs").element.value)
-            converstions_c = float(Element("converstions-c").element.value)
-            actual_tgs = float(Element("actual-tgs").element.value)
-            converstions_t = float(Element("converstions-t").element.value)
-
-            _, p_value = proportions_ztest([converstions_c, converstions_t], [actual_cgs, actual_tgs], alternative='two-sided')
-            
-            cr_c = converstions_c/actual_cgs
-            cr_t = converstions_t/actual_tgs
-
-            difference = cr_t - cr_c
-
-            if p_value < alpha:
-              decision = "Positive"
-            else:
-              decision = "Negative"
-
-            Element('cgs').write(round(actual_cgs))
-            Element('tgs').write(round(actual_tgs))
-
-            Element('cntr-c').write(round(converstions_c))
-            Element('test-c').write(round(converstions_t))
-
-            Element('cr-c').write(round(cr_c,4))
-            Element('cr-t').write(round(cr_t,4))
-
-            Element('diff').write(round(difference,4))
-
-            Element('pvalue').write(round(p_value,5))
-
-            Element('decision').write(decision)
-            Element('stat-sig').write(alpha)
-
-    
-    </script>
+      <!-- PyScript CSS -->
+      <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
+      <!-- This script tag bootstraps PyScript -->
+      <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
+     
 
 </head>
 <body>
@@ -171,7 +100,7 @@
     <label for="level">Significance (Desired maximum FPR):</label>
     <input type="text" id="level" name="level" class="py-input" value="0.05"><br>
 
-    <input type="submit" value="Calculate Sample Sizes" id="btn-load" class="py-button" py-click="get_data()">
+    <input type="submit" value="Calculate Sample Sizes" id="btn-load" class="py-button" py-click="get_data">
   </form>
   <p>Control Group Size: <span id="control-group"></span></p>
   <p>Test Group Size: <span id="test-group"></span></p>
@@ -193,7 +122,7 @@
     <label for="power">Number of Converstions in Test Group:</label>
     <input type="text" id="converstions-t" name="converstions-t" class="py-input" value="40"><br>
 
-    <input type="submit" value="Evaluate Experiment" id="btn-load" class="py-button" py-click="evaluate_experiment()">
+    <input type="submit" value="Evaluate Experiment" id="btn-load" class="py-button" py-click="evaluate_experiment">
   </form>
 
   <p>Decision: <span id="decision"></span></p>
@@ -226,7 +155,7 @@
   <p>Difference: <span id="diff"></span></p>
   <p>Pvalue: <span id="pvalue"></span></p>
  
-
+  <script type="py" src="./main.py" config="./pyscript.json"></script>
 
 </body>
 </html>
